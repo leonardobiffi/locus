@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/leonardobiffi/cepli/cmd"
+import "cepli/cmd"
 
 func main() {
 	cmd.Execute()
