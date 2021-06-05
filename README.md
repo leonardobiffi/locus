@@ -1,4 +1,4 @@
-# CEPli
+# cepli
 Client CLI to get info from CEP
 
 ## Usage
