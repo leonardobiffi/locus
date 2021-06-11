@@ -16,13 +16,11 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 
-	"log"
-	"net/http"
+	"cepli/cep/apicepla"
+	"cepli/cep/apivercel"
 
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/jedib0t/go-pretty/text"
@@ -49,21 +47,6 @@ var (
 	colorGreen = "\033[32m"
 )
 
-type Response struct {
-	Date string `json:"date"`
-	Info *Info  `json:"info"`
-}
-
-type Info struct {
-	Cep      string  `json:"cep"`
-	Address  string  `json:"address"`
-	State    string  `json:"state"`
-	District string  `json:"district"`
-	City     string  `json:"city"`
-	Status   *int    `json:"status"`
-	Message  *string `json:"message"`
-}
-
 func init() {
 	rootCmd.AddCommand(getCmd)
 
@@ -83,28 +66,8 @@ func init() {
 
 func getCep(cmd *cobra.Command, args []string) {
 
-	url := fmt.Sprintf("https://cep-api.vercel.app/api/%s", CepFlag)
-
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	response := Response{}
-	jsonErr := json.Unmarshal(body, &response)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
-	}
-
-	if response.Info.Status != nil {
-		fmt.Println(colorRed, *response.Info.Message)
-		return
-	}
+	response := apivercel.GetCep(CepFlag)
+	responseL := apicepla.GetCep(CepFlag)
 
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
@@ -112,11 +75,11 @@ func getCep(cmd *cobra.Command, args []string) {
 	t.AppendHeader(table.Row{"Cidade", "CEP", "Endereço", "Estado", "Bairro"})
 
 	t.AppendRow(table.Row{
-		response.Info.City,
-		response.Info.Cep,
-		response.Info.Address,
-		response.Info.State,
-		response.Info.District,
+		response.City,
+		response.Cep,
+		response.Address,
+		response.Uf,
+		response.District,
 	})
 
 	t.SetStyle(table.StyleLight)
