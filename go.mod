@@ -1,4 +1,4 @@
-module cepli
+module locus-cli
 
 go 1.16
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-
+	"locus-cli/config"
 	"log"
 	"net/http"
 )
@@ -31,7 +31,8 @@ func GetCep(cep string) (response Response) {
 
 	jsonErr := json.Unmarshal(body, &response)
 	if jsonErr != nil {
-		log.Fatal(jsonErr)
+		fmt.Println(config.ColorRed, fmt.Sprintf("CEP %s not found!", cep))
+		return Response{}
 	}
 
 	return response

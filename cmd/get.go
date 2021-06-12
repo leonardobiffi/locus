@@ -17,10 +17,8 @@ package cmd
 
 import (
 	"fmt"
+	"locus-cli/cep/apicepla"
 	"os"
-
-	"cepli/cep/apicepla"
-	"cepli/cep/apivercel"
 
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/jedib0t/go-pretty/text"
@@ -42,9 +40,7 @@ to quickly create a Cobra application.`,
 }
 
 var (
-	CepFlag    string
-	colorRed   = "\033[31m"
-	colorGreen = "\033[32m"
+	CepFlag string
 )
 
 func init() {
@@ -66,30 +62,32 @@ func init() {
 
 func getCep(cmd *cobra.Command, args []string) {
 
-	response := apivercel.GetCep(CepFlag)
-	responseL := apicepla.GetCep(CepFlag)
+	// response := apivercel.GetCep(CepFlag)
+	response := apicepla.GetCep(CepFlag)
 
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.SetCaption(fmt.Sprintf("Informações do CEP: %s", CepFlag))
-	t.AppendHeader(table.Row{"Cidade", "CEP", "Endereço", "Estado", "Bairro"})
+	if response.Cep != "" {
+		t := table.NewWriter()
+		t.SetOutputMirror(os.Stdout)
+		t.SetCaption(fmt.Sprintf("Informações do CEP: %s", CepFlag))
+		t.AppendHeader(table.Row{"Cidade", "CEP", "Endereço", "Estado", "Bairro"})
 
-	t.AppendRow(table.Row{
-		response.City,
-		response.Cep,
-		response.Address,
-		response.Uf,
-		response.District,
-	})
+		t.AppendRow(table.Row{
+			response.City,
+			response.Cep,
+			response.Address,
+			response.Uf,
+			response.District,
+		})
 
-	t.SetStyle(table.StyleLight)
-	t.Style().Color = table.ColorOptions{
-		IndexColumn:  nil,
-		Footer:       text.Colors{text.FgHiBlue, text.FgHiBlue},
-		Header:       text.Colors{text.FgHiBlue, text.FgHiBlue},
-		Row:          text.Colors{text.FgHiBlue, text.FgHiBlue},
-		RowAlternate: text.Colors{text.FgHiBlue, text.FgHiBlue},
+		t.SetStyle(table.StyleLight)
+		t.Style().Color = table.ColorOptions{
+			IndexColumn:  nil,
+			Footer:       text.Colors{text.FgHiBlue, text.FgHiBlue},
+			Header:       text.Colors{text.FgHiBlue, text.FgHiBlue},
+			Row:          text.Colors{text.FgHiBlue, text.FgHiBlue},
+			RowAlternate: text.Colors{text.FgHiBlue, text.FgHiBlue},
+		}
+
+		t.Render()
 	}
-
-	t.Render()
 }
