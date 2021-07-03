@@ -1,13 +1,5 @@
 package apivercel
 
-type Response struct {
-	Cep      string
-	Uf       string
-	City     string
-	District string
-	Address  string
-}
-
 type ResponseVercel struct {
 	Date string `json:"date"`
 	Info *Info  `json:"info"`

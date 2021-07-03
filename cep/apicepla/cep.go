@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"locus-cli/cep"
 	"locus-cli/config"
 	"log"
 	"net/http"
 )
 
 // GetCep return CEP info using => http://cep.la/api
-func GetCep(cep string) (response Response) {
-	url := fmt.Sprintf("http://cep.la/%s", cep)
+func GetCep(findCep string, messages chan cep.Response) {
+	response := Response{}
+
+	url := fmt.Sprintf("http://cep.la/%s", findCep)
 
 	client := &http.Client{}
 	resp, err := client.Get(url)
@@ -31,15 +34,22 @@ func GetCep(cep string) (response Response) {
 
 	jsonErr := json.Unmarshal(body, &response)
 	if jsonErr != nil {
-		fmt.Println(config.ColorRed, fmt.Sprintf("CEP %s not found!", cep))
-		return Response{}
+		fmt.Println(config.ColorRed, fmt.Sprintf("CEP %s not found!", findCep))
+		messages <- cep.Response{}
 	}
 
-	return response
+	messages <- cep.Response{
+		Cep:       response.Cep,
+		Uf:        response.Uf,
+		City:      response.City,
+		District:  response.District,
+		Address:   response.Address,
+		ApiSource: "cepla",
+	}
 }
 
-func ListCep(uf, city, district string) (response []Response) {
-
+func ListCep(uf, city, district string) (responseApi []Response) {
+	var response []Response
 	url := fmt.Sprintf("http://cep.la/%s/%s/%s", uf, city, district)
 
 	client := &http.Client{}
@@ -59,11 +69,10 @@ func ListCep(uf, city, district string) (response []Response) {
 	}
 
 	jsonErr := json.Unmarshal(body, &response)
-
 	if jsonErr != nil {
 		fmt.Println(jsonErr)
 		fmt.Println(config.ColorRed, fmt.Sprintf("UF %s not found!", uf))
-		return []Response{}
+		return
 	}
 
 	return response

@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"locus-cli/cep/apicepla"
-	"os"
+	"locus-cli/utils"
 
-	"github.com/jedib0t/go-pretty/table"
-	"github.com/jedib0t/go-pretty/text"
 	"github.com/spf13/cobra"
 )
 
@@ -18,22 +16,17 @@ var (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: listCep,
+	Short: "List CEPs by location",
+	Long:  `List CEPs by location.`,
+	RunE:  listCep,
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
 
-	listCmd.Flags().StringVarP(&UfFlag, "uf", "u", "", "Set UF")
-	listCmd.Flags().StringVarP(&CityFlag, "city", "i", "", "Set City")
-	listCmd.Flags().StringVarP(&DistrictFlag, "district", "d", "", "Set District")
+	listCmd.Flags().StringVarP(&UfFlag, "uf", "u", "", "Set UF [required]")
+	listCmd.Flags().StringVarP(&CityFlag, "city", "i", "", "Set City [required]")
+	listCmd.Flags().StringVarP(&DistrictFlag, "district", "d", "", "Set District [required]")
 
 	listCmd.MarkFlagRequired("uf")
 	listCmd.MarkFlagRequired("city")
@@ -50,29 +43,32 @@ func init() {
 	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func listCep(cmd *cobra.Command, args []string) {
+func listCep(cmd *cobra.Command, args []string) error {
 
 	response := apicepla.ListCep(UfFlag, CityFlag, DistrictFlag)
+	utils.PrintJson(response)
 
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"CEP", "Endereço"})
+	return nil
 
-	for _, r := range response {
-		t.AppendRow(table.Row{
-			r.Cep,
-			r.Address,
-		})
-	}
+	// t := table.NewWriter()
+	// t.SetOutputMirror(os.Stdout)
+	// t.AppendHeader(table.Row{"CEP", "Endereço"})
 
-	t.SetStyle(table.StyleLight)
-	t.Style().Color = table.ColorOptions{
-		IndexColumn:  nil,
-		Footer:       text.Colors{text.FgHiBlue, text.FgHiBlue},
-		Header:       text.Colors{text.FgHiBlue, text.FgHiBlue},
-		Row:          text.Colors{text.FgHiBlue, text.FgHiBlue},
-		RowAlternate: text.Colors{text.FgHiBlue, text.FgHiBlue},
-	}
+	// for _, r := range response {
+	// 	t.AppendRow(table.Row{
+	// 		r.Cep,
+	// 		r.Address,
+	// 	})
+	// }
 
-	t.Render()
+	// t.SetStyle(table.StyleLight)
+	// t.Style().Color = table.ColorOptions{
+	// 	IndexColumn:  nil,
+	// 	Footer:       text.Colors{text.FgHiBlue, text.FgHiBlue},
+	// 	Header:       text.Colors{text.FgHiBlue, text.FgHiBlue},
+	// 	Row:          text.Colors{text.FgHiBlue, text.FgHiBlue},
+	// 	RowAlternate: text.Colors{text.FgHiBlue, text.FgHiBlue},
+	// }
+
+	// t.Render()
 }

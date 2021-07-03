@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"locus-cli/cep"
 	"locus-cli/config"
 	"log"
 	"net/http"
 )
 
-func GetCep(cep string) (response Response) {
-	url := fmt.Sprintf("https://cep-api.vercel.app/api/%s", cep)
+func GetCep(findCep string, messages chan cep.Response) {
+	url := fmt.Sprintf("https://cep-api.vercel.app/api/%s", findCep)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -29,15 +30,16 @@ func GetCep(cep string) (response Response) {
 	}
 
 	if responseVercel.Info.Status != nil {
-		fmt.Println(config.ColorRed, fmt.Sprintf("CEP %s not found!", cep))
-		return Response{}
+		fmt.Println(config.ColorRed, fmt.Sprintf("CEP %s not found!", findCep))
+		messages <- cep.Response{}
 	}
 
-	return Response{
-		Cep:      responseVercel.Info.Cep,
-		Uf:       responseVercel.Info.State,
-		City:     responseVercel.Info.City,
-		District: responseVercel.Info.District,
-		Address:  responseVercel.Info.Address,
+	messages <- cep.Response{
+		Cep:       responseVercel.Info.Cep,
+		Uf:        responseVercel.Info.State,
+		City:      responseVercel.Info.City,
+		District:  responseVercel.Info.District,
+		Address:   responseVercel.Info.Address,
+		ApiSource: "vercel",
 	}
 }

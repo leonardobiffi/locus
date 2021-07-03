@@ -1,31 +1,27 @@
 package cmd
 
 import (
-	"fmt"
+	"locus-cli/cep"
 	"locus-cli/cep/apicepla"
-	"os"
+	"locus-cli/cep/apivercel"
+	"locus-cli/utils"
 
-	"github.com/jedib0t/go-pretty/table"
-	"github.com/jedib0t/go-pretty/text"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
-	Use:     "get",
-	Version: rootCmd.Version,
-	Short:   "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: getCep,
+	Use:   "get",
+	Short: "Get Info about the CEP",
+	Long:  `Get Info about the CEP.`,
+	RunE:  getCep,
 }
 
 var (
-	CepFlag string
+	CepFlag     string
+	PrintPretty bool
+	PrintJson   bool
 )
 
 func init() {
@@ -34,45 +30,42 @@ func init() {
 	getCmd.Flags().StringVarP(&CepFlag, "cep", "c", "", "Set CEP [required]")
 	getCmd.MarkFlagRequired("cep")
 
-	// Here you will define your flags and configuration settings.
+	getCmd.Flags().BoolVarP(&PrintPretty, "pretty", "p", false, "Print Pretty Table output")
+	getCmd.Flags().BoolVarP(&PrintJson, "json", "j", false, "Print Pretty JSON output")
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// getCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// getCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func getCep(cmd *cobra.Command, args []string) {
+func getCep(cmd *cobra.Command, args []string) error {
 
-	// response := apivercel.GetCep(CepFlag)
-	response := apicepla.GetCep(CepFlag)
+	messages := make(chan cep.Response)
+
+	go apicepla.GetCep(CepFlag, messages)
+	go apivercel.GetCep(CepFlag, messages)
+
+	response := <-messages
 
 	if response.Cep != "" {
-		t := table.NewWriter()
-		t.SetOutputMirror(os.Stdout)
-		t.SetCaption(fmt.Sprintf("Informações do CEP: %s", CepFlag))
-		t.AppendHeader(table.Row{"Cidade", "CEP", "Endereço", "Estado", "Bairro"})
-
-		t.AppendRow(table.Row{
+		header := table.Row{"Cidade", "CEP", "Endereço", "Estado", "Bairro"}
+		row := table.Row{
 			response.City,
 			response.Cep,
 			response.Address,
 			response.Uf,
 			response.District,
-		})
-
-		t.SetStyle(table.StyleLight)
-		t.Style().Color = table.ColorOptions{
-			IndexColumn:  nil,
-			Footer:       text.Colors{text.FgHiBlue, text.FgHiBlue},
-			Header:       text.Colors{text.FgHiBlue, text.FgHiBlue},
-			Row:          text.Colors{text.FgHiBlue, text.FgHiBlue},
-			RowAlternate: text.Colors{text.FgHiBlue, text.FgHiBlue},
 		}
 
-		t.Render()
+		if PrintPretty {
+			utils.PrintTablePretty(header, row)
+			return nil
+		}
+
+		if PrintJson {
+			utils.PrintJson(response)
+			return nil
+		}
+
+		utils.PrintTable(header, row)
 	}
+
+	return nil
 }
