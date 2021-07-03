@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "cepli/cmd"
+import "locus-cli/cmd"
 
 func main() {
 	cmd.Execute()
