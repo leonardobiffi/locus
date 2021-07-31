@@ -2,15 +2,19 @@ package cmd
 
 import (
 	"locus-cli/cep/apicepla"
+	"locus-cli/cep/apiviacep"
 	"locus-cli/utils"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
 var (
 	UfFlag       string
+	PageFlag     string
 	CityFlag     string
 	DistrictFlag string
+	AddressFlag  string
 )
 
 // listCmd represents the list command
@@ -24,51 +28,67 @@ var listCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(listCmd)
 
-	listCmd.Flags().StringVarP(&UfFlag, "uf", "u", "", "Set UF [required]")
-	listCmd.Flags().StringVarP(&CityFlag, "city", "i", "", "Set City [required]")
-	listCmd.Flags().StringVarP(&DistrictFlag, "district", "d", "", "Set District [required]")
+	listCmd.Flags().StringVarP(&UfFlag, "uf", "u", "", "Set UF")
+	listCmd.Flags().StringVarP(&CityFlag, "city", "i", "", "Set City")
+	listCmd.Flags().StringVarP(&DistrictFlag, "district", "d", "", "Set District")
+	listCmd.Flags().StringVarP(&AddressFlag, "address", "a", "", "Set Address")
 
-	listCmd.MarkFlagRequired("uf")
-	listCmd.MarkFlagRequired("city")
-	listCmd.MarkFlagRequired("district")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	listCmd.Flags().StringVarP(&PageFlag, "page", "p", "", "List Paginate")
 }
 
 func listCep(cmd *cobra.Command, args []string) error {
 
-	response := apicepla.ListCep(UfFlag, CityFlag, DistrictFlag)
-	utils.PrintJson(response)
+	// response := apicepla.ListCep(UfFlag, CityFlag, DistrictFlag)
+	// response := apiviacep.ListCep(UfFlag, CityFlag, AddressFlag)
+
+	if UfFlag != "" {
+		response := apicepla.ListCity(UfFlag, PageFlag)
+
+		header := table.Row{"Cidade"}
+		var rows []table.Row
+		for _, r := range response {
+
+			rows = append(rows, table.Row{
+				r.Name,
+			})
+		}
+
+		utils.PrintTableRows(header, rows)
+		return nil
+	}
+
+	if AddressFlag != "" {
+		response := apiviacep.ListCep(UfFlag, CityFlag, AddressFlag)
+
+		header := table.Row{"Cep", "Rua", "Bairro", "Cidade"}
+		var rows []table.Row
+		for _, r := range response {
+
+			rows = append(rows, table.Row{
+				r.Cep,
+				r.Address,
+				r.District,
+				r.City,
+			})
+		}
+
+		utils.PrintTableRows(header, rows)
+		return nil
+	}
+
+	response := apicepla.ListState()
+
+	header := table.Row{"UF", "Estado"}
+	var rows []table.Row
+	for _, r := range response {
+
+		rows = append(rows, table.Row{
+			r.Uf,
+			r.Name,
+		})
+	}
+
+	utils.PrintTableRows(header, rows)
 
 	return nil
-
-	// t := table.NewWriter()
-	// t.SetOutputMirror(os.Stdout)
-	// t.AppendHeader(table.Row{"CEP", "Endereço"})
-
-	// for _, r := range response {
-	// 	t.AppendRow(table.Row{
-	// 		r.Cep,
-	// 		r.Address,
-	// 	})
-	// }
-
-	// t.SetStyle(table.StyleLight)
-	// t.Style().Color = table.ColorOptions{
-	// 	IndexColumn:  nil,
-	// 	Footer:       text.Colors{text.FgHiBlue, text.FgHiBlue},
-	// 	Header:       text.Colors{text.FgHiBlue, text.FgHiBlue},
-	// 	Row:          text.Colors{text.FgHiBlue, text.FgHiBlue},
-	// 	RowAlternate: text.Colors{text.FgHiBlue, text.FgHiBlue},
-	// }
-
-	// t.Render()
 }

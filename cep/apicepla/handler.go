@@ -1,5 +1,14 @@
 package apicepla
 
+type ResponseState struct {
+	Uf   string `json:"id"`
+	Name string `json:"nome"`
+}
+
+type ResponseCity struct {
+	Name string `json:"nome"`
+}
+
 type Response struct {
 	Cep      string `json:"cep"`
 	Uf       string `json:"uf"`
