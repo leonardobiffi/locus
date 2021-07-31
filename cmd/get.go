@@ -4,6 +4,7 @@ import (
 	"locus-cli/cep"
 	"locus-cli/cep/apicepla"
 	"locus-cli/cep/apivercel"
+	"locus-cli/cep/apiviacep"
 	"locus-cli/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -41,17 +42,19 @@ func getCep(cmd *cobra.Command, args []string) error {
 
 	go apicepla.GetCep(CepFlag, messages)
 	go apivercel.GetCep(CepFlag, messages)
+	go apiviacep.GetCep(CepFlag, messages)
 
 	response := <-messages
 
 	if response.Cep != "" {
-		header := table.Row{"Cidade", "CEP", "Endereço", "Estado", "Bairro"}
+		header := table.Row{"Cidade", "CEP", "Endereço", "Estado", "Bairro", "API"}
 		row := table.Row{
 			response.City,
 			response.Cep,
 			response.Address,
 			response.Uf,
 			response.District,
+			response.ApiSource,
 		}
 
 		if PrintPretty {

@@ -10,6 +10,7 @@ import (
 	"net/http"
 )
 
+// GetCep return CEP info using => https://cep-api.vercel.app/api
 func GetCep(findCep string, messages chan cep.Response) {
 	url := fmt.Sprintf("https://cep-api.vercel.app/api/%s", findCep)
 
