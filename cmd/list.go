@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"locus-cli/cep/apicepla"
-	"locus-cli/cep/apiviacep"
-	"locus-cli/utils"
+	apicepla "locus/source/cepla"
+	apiviacep "locus/source/viacep"
+	"locus/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"

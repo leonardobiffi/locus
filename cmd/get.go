@@ -1,14 +1,16 @@
 package cmd
 
 import (
-	"locus-cli/cep"
-	"locus-cli/cep/apicepla"
-	"locus-cli/cep/apivercel"
-	"locus-cli/cep/apiviacep"
-	"locus-cli/utils"
+	"locus/source"
+	cepla "locus/source/cepla"
+	"locus/source/opencep"
+	vercel "locus/source/vercel"
+	viacep "locus/source/viacep"
+	"locus/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // getCmd represents the get command
@@ -37,12 +39,10 @@ func init() {
 }
 
 func getCep(cmd *cobra.Command, args []string) error {
+	messages := make(chan source.Response)
 
-	messages := make(chan cep.Response)
-
-	go apicepla.GetCep(CepFlag, messages)
-	go apivercel.GetCep(CepFlag, messages)
-	go apiviacep.GetCep(CepFlag, messages)
+	sourceApi := viper.GetString("source")
+	getFromSource(CepFlag, sourceApi, messages)
 
 	response := <-messages
 
@@ -54,7 +54,7 @@ func getCep(cmd *cobra.Command, args []string) error {
 			response.Address,
 			response.Uf,
 			response.District,
-			response.ApiSource,
+			response.SourceApi,
 		}
 
 		if PrintPretty {
@@ -71,4 +71,22 @@ func getCep(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func getFromSource(cep, sourceApi string, messages chan source.Response) {
+	switch sourceApi {
+	case cepla.SourceApi:
+		go cepla.GetCep(CepFlag, messages)
+	case vercel.SourceApi:
+		go vercel.GetCep(CepFlag, messages)
+	case viacep.SourceApi:
+		go viacep.GetCep(CepFlag, messages)
+	case opencep.SourceApi:
+		go opencep.GetCep(CepFlag, messages)
+	default:
+		go cepla.GetCep(cep, messages)
+		go vercel.GetCep(cep, messages)
+		go viacep.GetCep(cep, messages)
+		go opencep.GetCep(cep, messages)
+	}
 }

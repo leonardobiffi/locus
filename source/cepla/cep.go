@@ -4,26 +4,37 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"locus-cli/cep"
-	"locus-cli/config"
+	"locus/config"
+	"locus/source"
 	"log"
 	"net/http"
 	"strings"
 )
 
+const (
+	SourceApi = "cepla"
+)
+
 // GetCep return CEP info using => http://cep.la/api
-func GetCep(findCep string, messages chan cep.Response) {
+func GetCep(findCep string, messages chan source.Response) {
 	response := Response{}
 
 	url := fmt.Sprintf("http://cep.la/%s", findCep)
 
 	client := &http.Client{}
-	resp, err := client.Get(url)
+	_, err := client.Get(url)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	req.Header.Add("Accept", "application/json")
 
-	resp, err = client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -36,29 +47,35 @@ func GetCep(findCep string, messages chan cep.Response) {
 	jsonErr := json.Unmarshal(body, &response)
 	if jsonErr != nil {
 		fmt.Println(config.ColorRed, fmt.Sprintf("CEP %s not found!", findCep))
-		messages <- cep.Response{}
+		messages <- source.Response{}
 	}
 
-	messages <- cep.Response{
+	messages <- source.Response{
 		Cep:       response.Cep,
 		Uf:        response.Uf,
 		City:      response.City,
 		District:  response.District,
 		Address:   response.Address,
-		ApiSource: "cepla",
+		SourceApi: SourceApi,
 	}
 }
 
 func ListState() (response []ResponseState) {
-	url := fmt.Sprintf("http://cep.la")
+	url := "http://cep.la"
 
 	client := &http.Client{}
-	resp, err := client.Get(url)
+	_, err := client.Get(url)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	req.Header.Add("Accept", "application/json")
 
-	resp, err = client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -89,12 +106,18 @@ func ListCity(state, page string) (response []ResponseCity) {
 		url := fmt.Sprintf("http://cep.la/%s/%s", state, fmt.Sprint(i))
 
 		client := &http.Client{}
-		resp, err := client.Get(url)
+		_, err := client.Get(url)
+		if err != nil {
+			log.Fatalln(err)
+		}
 
 		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			log.Fatalln(err)
+		}
 		req.Header.Add("Accept", "application/json")
 
-		resp, err = client.Do(req)
+		resp, err := client.Do(req)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -126,12 +149,19 @@ func ListCep(uf, city, district string) (responseApi []Response) {
 	url := fmt.Sprintf("http://cep.la/%s/%s/%s", uf, city, district)
 
 	client := &http.Client{}
-	resp, err := client.Get(url)
+	_, err := client.Get(url)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	req.Header.Add("Accept", "application/json")
 
-	resp, err = client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -4,17 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"locus-cli/cep"
-	"locus-cli/config"
+	"locus/config"
+	"locus/source"
 	"log"
 	"net/http"
 	"strings"
 )
 
+const (
+	SourceApi = "viacep"
+)
+
 // GetCep return CEP info using => https://viacep.com.br/ws
-func GetCep(findCep string, messages chan cep.Response) {
+func GetCep(findCep string, messages chan source.Response) {
 	response := Response{}
-	url := fmt.Sprintf("https://viacep.com.br/ws/%s/json", findCep)
+	url := fmt.Sprintf("https://viacep.com.br/ws/%s/json/", findCep)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -32,13 +36,13 @@ func GetCep(findCep string, messages chan cep.Response) {
 		log.Fatal(jsonErr)
 	}
 
-	messages <- cep.Response{
+	messages <- source.Response{
 		Cep:       strings.ReplaceAll(response.Cep, "-", ""),
 		Uf:        response.State,
 		City:      response.City,
 		District:  response.District,
 		Address:   response.Address,
-		ApiSource: "viacep",
+		SourceApi: SourceApi,
 	}
 }
 

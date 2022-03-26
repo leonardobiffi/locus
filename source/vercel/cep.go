@@ -4,14 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"locus-cli/cep"
-	"locus-cli/config"
+	"locus/config"
+	"locus/source"
 	"log"
 	"net/http"
 )
 
+const (
+	SourceApi = "vercel"
+)
+
 // GetCep return CEP info using => https://cep-api.vercel.app/api
-func GetCep(findCep string, messages chan cep.Response) {
+func GetCep(findCep string, messages chan source.Response) {
 	url := fmt.Sprintf("https://cep-api.vercel.app/api/%s", findCep)
 
 	resp, err := http.Get(url)
@@ -32,15 +36,15 @@ func GetCep(findCep string, messages chan cep.Response) {
 
 	if responseVercel.Info.Status != nil {
 		fmt.Println(config.ColorRed, fmt.Sprintf("CEP %s not found!", findCep))
-		messages <- cep.Response{}
+		messages <- source.Response{}
 	}
 
-	messages <- cep.Response{
+	messages <- source.Response{
 		Cep:       responseVercel.Info.Cep,
 		Uf:        responseVercel.Info.State,
 		City:      responseVercel.Info.City,
 		District:  responseVercel.Info.District,
 		Address:   responseVercel.Info.Address,
-		ApiSource: "vercel",
+		SourceApi: SourceApi,
 	}
 }
