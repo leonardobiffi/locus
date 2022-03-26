@@ -17,6 +17,19 @@ func PrintTable(header table.Row, row table.Row) {
 	t.Render()
 }
 
+func PrintTableRows(header table.Row, rows []table.Row) {
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+
+	t.AppendHeader(header)
+
+	for _, r := range rows {
+		t.AppendRow(r)
+	}
+
+	t.Render()
+}
+
 func PrintTablePretty(header table.Row, row table.Row) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)

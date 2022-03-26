@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "locus-cli/cmd"
+import "locus/cmd"
 
 func main() {
 	cmd.Execute()
