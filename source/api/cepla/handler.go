@@ -1,4 +1,4 @@
-package apicepla
+package cepla
 
 type ResponseState struct {
 	Uf   string `json:"id"`

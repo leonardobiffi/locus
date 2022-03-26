@@ -1,63 +1,76 @@
-package apicepla
+package cepla
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"locus/config"
-	"locus/source"
+	"locus/utils"
 	"log"
 	"net/http"
 	"strings"
+	"time"
+
+	"locus/entities"
 )
 
-const (
-	SourceApi = "cepla"
-)
+const SourceApi = "cepla"
 
-// GetCep return CEP info using => http://cep.la/api
-func GetCep(findCep string, messages chan source.Response) {
-	response := Response{}
+type service struct {
+	cep       string
+	response  Response
+	sourceApi string
+}
 
-	url := fmt.Sprintf("http://cep.la/%s", findCep)
+func New(cep string) *service {
+	return &service{
+		cep:       cep,
+		sourceApi: SourceApi,
+	}
+}
+
+// Get return CEP info using => http://cep.la/{cep}
+func (s *service) Get() (response entities.Response, err error) {
+	url := fmt.Sprintf("http://cep.la/%s", s.cep)
 
 	client := &http.Client{}
-	_, err := client.Get(url)
+	_, err = client.Get(url)
 	if err != nil {
-		log.Fatalln(err)
+		return
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		log.Fatalln(err)
+		return
 	}
 
 	req.Header.Add("Accept", "application/json")
 
+	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln(err)
+		return
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		return
 	}
 
-	jsonErr := json.Unmarshal(body, &response)
+	jsonErr := json.Unmarshal(body, &s.response)
 	if jsonErr != nil {
-		fmt.Println(config.ColorRed, fmt.Sprintf("CEP %s not found!", findCep))
-		messages <- source.Response{}
+		return response, fmt.Errorf("cep %s not found", s.cep)
 	}
 
-	messages <- source.Response{
-		Cep:       response.Cep,
-		Uf:        response.Uf,
-		City:      response.City,
-		District:  response.District,
-		Address:   response.Address,
-		SourceApi: SourceApi,
-	}
+	return entities.Response{
+		Cep:          s.response.Cep,
+		Uf:           s.response.Uf,
+		City:         s.response.City,
+		District:     s.response.District,
+		Address:      s.response.Address,
+		SourceApi:    s.sourceApi,
+		ResponseTime: utils.FormatResponseTime(start),
+	}, nil
 }
 
 func ListState() (response []ResponseState) {

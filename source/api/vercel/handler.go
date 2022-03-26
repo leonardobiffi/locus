@@ -1,6 +1,6 @@
-package apivercel
+package vercel
 
-type ResponseVercel struct {
+type Response struct {
 	Date string `json:"date"`
 	Info *Info  `json:"info"`
 }
