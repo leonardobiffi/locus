@@ -28,9 +28,9 @@ var (
 	sourceApi string
 	rootCmd   = &cobra.Command{
 		Use:     "locus",
-		Version: "0.1.0",
-		Short:   "Client to get complete info about CEPs",
-		Long:    `Client to get complete info about CEPs.`,
+		Version: "v0.1.0",
+		Short:   "CLI to get complete info about CEPs",
+		Long:    `CLI to get complete info about CEPs.`,
 		// Uncomment the following line if your bare application
 		// has an action associated with it:
 		//	Run: func(cmd *cobra.Command, args []string) { },
